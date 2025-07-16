@@ -13,7 +13,7 @@ from viam.module.module import Module
 from viam.resource.registry import Registry, ResourceCreatorRegistration
 from viam.services.vision import VisionClient
 
-class MySensor(Sensor, Reconfigurable):
+class RTSPDebug(Sensor, Reconfigurable):
     MODEL = "seanavery:rtsp-debug:sensor"
     
     @classmethod
@@ -26,9 +26,9 @@ class MySensor(Sensor, Reconfigurable):
     def reconfigure(self, config: ModuleConfig, dependencies: Mapping[ResourceName, ResourceBase]):
         attributes = struct_to_dict(config.attributes)
         if "vision" not in attributes:
-            raise ValueError("MySensor requires a 'vision' attribute in the configuration.")
+            raise ValueError("RTSPDebug requires a 'vision' attribute in the configuration.")
         if "camera" not in attributes:
-            raise ValueError("MySensor requires a 'camera' attribute in the configuration.")
+            raise ValueError("RTSPDebug requires a 'camera' attribute in the configuration.")
         self.camera_name = attributes["camera"]
         self.vc = dependencies[VisionClient.get_resource_name(attributes["vision"])]
         self.save_path = os.path.join(os.path.expanduser("~"), ".viam", "rtsp-debug", self.camera_name)
@@ -70,9 +70,9 @@ class MySensor(Sensor, Reconfigurable):
             await asyncio.sleep(1)
     
 async def main():
-    Registry.register_resource_creator(Sensor.API, MySensor.MODEL, ResourceCreatorRegistration(MySensor.new, MySensor.validate))
+    Registry.register_resource_creator(Sensor.API, RTSPDebug.MODEL, ResourceCreatorRegistration(RTSPDebug.new, RTSPDebug.validate))
     module = Module.from_args()
-    module.add_model_from_registry(Sensor.API, MySensor.MODEL)
+    module.add_model_from_registry(Sensor.API, RTSPDebug.MODEL)
     await module.start()
 
 if __name__ == '__main__':
