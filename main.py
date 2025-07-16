@@ -40,7 +40,12 @@ class MySensor(Sensor, Reconfigurable):
         return [], []
 
     async def get_readings(self, **kwargs):
-        return {"ok": True}
+        try:
+            files = os.listdir(self.save_path)
+            corrupted_files = [f for f in files if f.endswith('.jpg')]
+            return {"corrupted_frames": corrupted_files}
+        except Exception as e:
+            return {"error": str(e)}
     
     async def poll_img(self):
         while True:
