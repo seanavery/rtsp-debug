@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os, time
 from typing import Mapping, Dict, Any
 from viam.proto.common import ResourceName
 from viam.utils import ValueTypes, struct_to_dict
@@ -17,7 +18,6 @@ class MySensor(Sensor, Reconfigurable):
     
     @classmethod
     def new(cls, config: ModuleConfig, dependencies: Mapping[ResourceName, ResourceBase]) -> Self:
-        print("Creating a new instance of MySensor with config:", config)
         my_class = cls(config.name)
         my_class.reconfigure(config, dependencies)
         asyncio.create_task(my_class.poll_img())
@@ -31,6 +31,9 @@ class MySensor(Sensor, Reconfigurable):
             raise ValueError("MySensor requires a 'camera' attribute in the configuration.")
         self.camera_name = attributes["camera"]
         self.vc = dependencies[VisionClient.get_resource_name(attributes["vision"])]
+        self.save_path = os.path.join(os.path.expanduser("~"), ".viam", "rtsp-debug", self.camera_name)
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
 
     @classmethod
     def validate(cls, config: ModuleConfig) -> tuple[list[str], list[str]]:
@@ -41,7 +44,6 @@ class MySensor(Sensor, Reconfigurable):
     
     async def poll_img(self):
         while True:
-            print("Polling image from camera:", self.camera_name)
             try:
                 result = await self.vc.capture_all_from_camera(
                     camera_name=self.camera_name,
@@ -52,7 +54,12 @@ class MySensor(Sensor, Reconfigurable):
                     extra=None,
                     timeout=5.0
                 )
-                print("Capture result:", result)
+                if result.classifications and len(result.classifications) > 0:
+                    print("Found corrupted frame, saving image")
+                    timestamp = int(time.time())
+                    image_path = f"{self.save_path}/{timestamp}.jpg"
+                    with open(image_path, 'wb') as f:
+                        f.write(result.image.data)
             except Exception as e:
                 print("Error during capture_all_from_camera:", e)
             await asyncio.sleep(1)
