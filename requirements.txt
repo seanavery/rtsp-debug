@@ -1,0 +1,2 @@
+viam-sdk~=0.47.0
+pyinstaller~=6.10.0

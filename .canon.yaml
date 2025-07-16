@@ -1,0 +1,3 @@
+rtsp-debug:
+    default: true
+    image_arm64: ghcr.io/viamrobotics/cloud-build-base:arm64
