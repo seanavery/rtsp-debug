@@ -1,4 +1,4 @@
-# `rtsp-debug` modular service
+# `rtsp-debug` sensor component
 
 This service is design to find corrupted video and images produced by the [viamrtsp](https://github.com/viam-modules/viamrtsp) module.
 
